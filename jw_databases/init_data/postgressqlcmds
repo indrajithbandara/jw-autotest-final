@@ -1,0 +1,96 @@
+最近一直在使用Postgresql，命令总是记不住，就索性整理下来，方便自己，也给大家分享下。
+
+Postgresql常见操作指令：
+连接数据库, 默认的用户和数据库是postgres
+psql -U user -d dbname
+
+切换数据库,相当于MySQL的use dbname
+\c dbname
+列举数据库，相当于mysql的show databases
+\l
+列举表，相当于mysql的show tables
+\dt
+查看表结构，相当于desc tblname,show columns from tbname
+\d tblname
+
+创建数据库：
+create database [数据库名];
+
+创建数据库指定用户：
+
+create database [数据库名] owner [用户名];;
+删除数据库：
+drop database [数据库名];
+*重命名一个表：
+alter table [表名A] rename to [表名B];
+*删除一个表：
+drop table [表名];
+
+*在已有的表里添加字段：
+alter table [表名] add column [字段名] [类型];
+*删除表中的字段：
+alter table [表名] drop column [字段名];
+*重命名一个字段：
+alter table [表名] rename column [字段名A] to [字段名B];
+*给一个字段设置缺省值：
+alter table [表名] alter column [字段名] set default [新的默认值];
+*去除缺省值：
+alter table [表名] alter column [字段名] drop default;
+在表中插入数据：
+insert into 表名 ([字段名m],[字段名n],......) values ([列m的值],[列n的值],......);
+修改表中的某行某列的数据：
+update [表名] set [目标字段名]=[目标值] where [该行特征];
+删除表中某行数据：
+delete from [表名] where [该行特征];
+delete from [表名];--删空整个表
+创建表：
+create table ([字段名1] [类型1] ;,[字段名2] [类型2],......<,primary key (字段名m,字段名n,...)>;);
+\copyright     显示 PostgreSQL 的使用和发行条款
+\encoding [字元编码名称]
+                 显示或设定用户端字元编码
+\h [名称]      SQL 命令语法上的说明，用 * 显示全部命令
+\prompt [文本] 名称
+                 提示用户设定内部变数
+\password [USERNAME]
+                 securely change the password for a user
+\q             退出 psql
+
+
+可以使用pg_dump和pg_dumpall来完成。比如备份sales数据库：
+pg_dump drupal>/opt/Postgresql/backup/1.bak
+用户、角色及权限问题：
+
+角色
+PostgreSQL使用角色的概念管理数据库访问权限。 根据角色自身的设置不同，一个角色可以看做是一个数据库用户，或者一组数据库用户。 角色可以拥有数据库对象(比如表)以及可以把这些对象上的权限赋予其它角色， 以控制谁拥有访问哪些对象的权限。
+操作角色的语句：
+create role db_role1; /*--创建角色*/
+drop role db_role1;  /*--删除角色*/
+select rolename from pg_roles; /*--查看所有角色*/
+/du  --在命令格式下查看所有角色的命令
+
+
+文／bruce_wu（简书作者）
+原文链接：http://www.jianshu.com/p/b09d0b29faa9
+著作权归作者所有，转载请联系作者获得授权，并标注“简书作者”。
+
+角色的权限
+一个数据库角色可以有很多权限，这些权限定义了角色和拥有角色的用户可以做的事情。
+create role db_role1 LOGIN; --创建具有登录权限的角色db_role1
+create role db_role2 SUPERUSER; --创建具有超级用户权限的角色
+create role db_role3 CREATEDB; --创建具有创建数据库权限的角色
+create role db_role4 CREATEROLE --创建具有创建角色权限的角色
+alter role db_role1 nologin nocreatedb; --修改角色取消登录和创建数据库权限
+用户
+其实用户和角色都是角色，只是用户是具有登录权限的角色。
+create user db_user1 password '123'; --创建用户
+create role db_user1 password '123' LOGIN;  --同上一句等价
+drop user db_user1;   --删除用户
+alter user db_user1 password '123456'; --修改密码
+alter user db_user1 createdb createrole; --对用户授权
+赋予角色控制权限
+我们可以使用GRANT 和REVOKE命令赋予用户角色，来控制权限。
+create user db_user1; --创建用户1
+create user db_user2; --创建用户2
+create role db_role1 createdb createrole; --创建角色1
+grant db_role1 to db_user1,db_user2; --给用户1,2赋予角色1,两个用户就拥有了创建数据库和创建角色的权限
+revoke db_role1 from db_user1; --从用户1移除角色1，用户不在拥有角色1的权限
